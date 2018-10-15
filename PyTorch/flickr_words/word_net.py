@@ -15,7 +15,7 @@ import torch
 import numpy as np
 from torch.optim import lr_scheduler
 import sys
-sys.path.append('/data/speech2image/PyTorch/functions')
+sys.path.append('/data/caption2image/PyTorch/functions')
 
 from trainer import flickr_trainer
 from costum_loss import batch_hinge_loss, ordered_loss, attention_loss

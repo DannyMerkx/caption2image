@@ -16,9 +16,9 @@ from text_cleanup import remove_numerical, remove_low_occurence
 # name of the token feature nodes in the h5 file
 feature = 'tokens'
 # location of the frequency dictionary
-freq_dict_loc = os.path.join('/data/speech2image/PyTorch/flickr_words/flickr_frequency')
+freq_dict_loc = os.path.join('/data/caption2image/PyTorch/flickr_words/flickr_frequency')
 # save the resulting dictionary here
-dict_loc = os.path.join('/data/speech2image/PyTorch/flickr_words/')
+dict_loc = os.path.join('/data/caption2image/PyTorch/flickr_words/')
 # location of the flickr8k features
 data_loc = os.path.join('/prep_data/flickr_features.h5')
 # load data

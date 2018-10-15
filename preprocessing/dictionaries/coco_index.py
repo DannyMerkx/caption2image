@@ -17,9 +17,9 @@ from text_cleanup import remove_numerical, remove_low_occurence
 # name of the token feature nodes in the h5 file
 feature = 'tokens'
 # location of the frequency dictionary
-freq_dict_loc = os.path.join('/data/speech2image/PyTorch/coco_words/coco_frequency')
+freq_dict_loc = os.path.join('/data/caption2image/PyTorch/coco_words/coco_frequency')
 # save the resulting dictionary here
-dict_loc = os.path.join('/data/speech2image/PyTorch/coco_words/')
+dict_loc = os.path.join('/data/caption2image/PyTorch/coco_words/')
 # location of the mscoco features
 data_loc = os.path.join('/prep_data/coco_features.h5')
 # load data
@@ -63,7 +63,7 @@ for cap in captions:
             index += 1
 
 # file containg a large corpus of english words, used to spot spelling mistakes
-corpus_loc = os.path.join('/data/speech2image/preprocessing/dictionaries/large.txt')
+corpus_loc = os.path.join('/data/caption2image/preprocessing/dictionaries/large.txt')
 # create a dictionary of spelling corrections. I.e. for words not occuring in wordnet, 
 dictionary = create_spell_check_dict(coco_dict, corpus_loc)
 

@@ -14,7 +14,7 @@ import numpy as np
 import logging
 import torch
 import pickle
-sys.path.append('/data/speech2image/PyTorch/functions')
+sys.path.append('/data/caption2image/PyTorch/functions')
 from encoders import text_rnn_encoder
 from collections import defaultdict
 
@@ -22,7 +22,7 @@ from collections import defaultdict
 PATH_TO_SENTEVAL = '/data/SentEval'
 PATH_TO_DATA = '/data/SentEval/data'
 glove_loc = '/data/glove.840B.300d.txt'
-PATH_TO_ENC = '/data/speech2image/PyTorch/flickr_words/results/'
+PATH_TO_ENC = '/data/caption2image/PyTorch/flickr_words/results/'
 
 # import SentEval
 sys.path.insert(0, PATH_TO_SENTEVAL)

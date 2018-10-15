@@ -15,14 +15,14 @@ import numpy as np
 import logging
 import torch
 import string
-sys.path.append('/data/speech2image/PyTorch/functions')
+sys.path.append('/data/caption2image/PyTorch/functions')
 from encoders import text_rnn_encoder
 
 # Set PATHs
 PATH_TO_SENTEVAL = '/data/SentEval'
 PATH_TO_DATA = '/data/SentEval/data'
 # path to the pretrained encoder models
-PATH_TO_ENC = '/data/speech2image/PyTorch/flickr_char/results/'
+PATH_TO_ENC = '/data/caption2image/PyTorch/flickr_char/results/'
 
 # import SentEval
 sys.path.insert(0, PATH_TO_SENTEVAL)

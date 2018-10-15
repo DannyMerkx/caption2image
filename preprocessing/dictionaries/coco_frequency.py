@@ -15,7 +15,7 @@ import string
 #path to the annotation files
 text_path = os.path.join('/data/mscoco/annotations')
 # folder to save the resulting dictionary
-dict_loc = os.path.join('/data/speech2image/PyTorch/coco_words/')
+dict_loc = os.path.join('/data/caption2image/PyTorch/coco_words/')
 
 # function tosave dictionary
 def save_obj(obj, loc):

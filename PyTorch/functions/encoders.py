@@ -11,7 +11,7 @@ from load_embeddings import load_word_embeddings
 import torch
 import torch.nn as nn
 
-# gru encoder for characters and tokens
+# rnn encoder for characters and tokens
 class text_rnn_encoder(nn.Module):
     def __init__(self, config):
         super(text_gru_encoder, self).__init__()

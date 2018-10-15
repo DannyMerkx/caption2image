@@ -23,7 +23,7 @@ import torch
 import sys
 import numpy as np
 
-sys.path.append('/data/speech2image/PyTorch/functions')
+sys.path.append('/data/caption2image/PyTorch/functions')
 
 from trainer import flickr_trainer
 from encoders import img_encoder, text_rnn_encoder
