@@ -1,5 +1,5 @@
-# speech2image
-This project is an implementation of a speech to image network which is trained to map images and captions of those images to the same vector space. This project contains networks for tokenized captions, raw text (character based prediction) and spoken captions. 
+# caption2image
+This project is an implementation of a caption to image network which is trained to map images and captions of those images to the same vector space. This project contains networks for tokenized captions and raw text (character based prediction) captions. 
 
 Important notice:
 The code is my own work, using python and Pytorch. However some of the ideas and data are not:
