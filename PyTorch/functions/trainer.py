@@ -5,7 +5,7 @@ Created on Tue Aug  7 15:45:31 2018
 
 @author: danny
 """
-from minibatchers import iterate_tokens_5fold, iterate_char_5fold, iterate_audio_5fold, iterate_snli_tokens, iterate_snli
+from minibatchers import iterate_tokens_5fold, iterate_char_5fold
 from grad_tracker import gradient_clipping
 from evaluate import evaluate
 
@@ -49,8 +49,6 @@ class flickr_trainer():
         self.batcher = self.token_batcher
     def set_raw_text_batcher(self):
         self.batcher = self.raw_text_batcher
-    def set_audio_batcher(self):
-        self.batcher = self.audio_batcher
     # function to set the learning rate scheduler
     def set_lr_scheduler(self, scheduler, s_type):
         self.lr_scheduler = scheduler  
