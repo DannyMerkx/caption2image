@@ -16,7 +16,7 @@ import logging
 import torch
 import string
 sys.path.append('/data/speech2image/PyTorch/functions')
-from encoders import text_gru_encoder
+from encoders import text_rnn_encoder
 
 # Set PATHs
 PATH_TO_SENTEVAL = '/data/SentEval'

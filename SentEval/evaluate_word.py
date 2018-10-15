@@ -15,7 +15,7 @@ import logging
 import torch
 import pickle
 sys.path.append('/data/speech2image/PyTorch/functions')
-from encoders import text_gru_encoder
+from encoders import text_rnn_encoder
 from collections import defaultdict
 
 # Set PATHs
