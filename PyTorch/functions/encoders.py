@@ -14,7 +14,7 @@ import torch.nn as nn
 # rnn encoder for characters and tokens
 class text_rnn_encoder(nn.Module):
     def __init__(self, config):
-        super(text_gru_encoder, self).__init__()
+        super(text_rnn_encoder, self).__init__()
         embed = config['embed']
         rnn= config['rnn']
         att = config ['att'] 
