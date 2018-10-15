@@ -30,9 +30,9 @@ parser.add_argument('-data_loc', type = str, default = '/prep_data/flickr_featur
                     help = 'location of the feature file, default: /prep_data/flickr_features.h5')
 parser.add_argument('-split_loc', type = str, default = '/data/flickr/dataset.json', 
                     help = 'location of the json file containing the data split information')
-parser.add_argument('-results_loc', type = str, default = '/data/speech2image/PyTorch/flickr_words/results/',
+parser.add_argument('-results_loc', type = str, default = '/data/caption2image/PyTorch/flickr_words/results/',
                     help = 'location to save the results and network parameters')
-parser.add_argument('-dict_loc', type = str, default = '/data/speech2image/PyTorch/flickr_words/word_dict')
+parser.add_argument('-dict_loc', type = str, default = '/data/caption2image/PyTorch/flickr_words/word_dict')
 # args concerning training settings
 parser.add_argument('-batch_size', type = int, default = 100, help = 'batch size, default: 32')
 parser.add_argument('-cuda', type = bool, default = True, help = 'use cuda, default: True')

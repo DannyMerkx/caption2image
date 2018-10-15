@@ -27,7 +27,7 @@ parser = argparse.ArgumentParser(description='Create and run an articulatory fea
 # args concerning file location
 parser.add_argument('-data_loc', type = str, default = '/prep_data/coco_features.h5',
                     help = 'location of the feature file, default: /prep_data/coco_features.h5')
-parser.add_argument('-results_loc', type = str, default = '/data/speech2image/PyTorch/coco_char/results/',
+parser.add_argument('-results_loc', type = str, default = '/data/caption2image/PyTorch/coco_char/results/',
                     help = 'location of the encoder parameters')
 # args concerning training settings
 parser.add_argument('-batch_size', type = int, default = 100, help = 'batch size, default: 100')

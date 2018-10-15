@@ -35,9 +35,9 @@ parser = argparse.ArgumentParser(description='Create and run an articulatory fea
 # args concerning file location
 parser.add_argument('-data_loc', type = str, default = '/prep_data/coco_features.h5',
                     help = 'location of the feature file, default: /prep_data/coco_features.h5')
-parser.add_argument('-results_loc', type = str, default = '/data/speech2image/PyTorch/flickr_words/ensemble_results/',
+parser.add_argument('-results_loc', type = str, default = '/data/scaption2image/PyTorch/flickr_words/ensemble_results/',
                     help = 'location to save the results and network parameters')
-parser.add_argument('-dict_loc', type = str, default = '/data/speech2image/PyTorch/coco_words/word_dict')
+parser.add_argument('-dict_loc', type = str, default = '/data/caption2image/PyTorch/coco_words/word_dict')
 # args concerning training settings
 parser.add_argument('-batch_size', type = int, default = 100, help = 'batch size, default: 32')
 parser.add_argument('-cuda', type = bool, default = True, help = 'use cuda, default: True')
