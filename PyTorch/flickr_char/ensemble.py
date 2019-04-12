@@ -22,11 +22,11 @@ import argparse
 import torch
 import sys
 import numpy as np
-sys.path.append('/data/caption2image/PyTorch/functions')
+sys.path.append('../functions')
 
 from trainer import flickr_trainer
 from encoders import img_encoder, text_rnn_encoder
-from data_split import split_data
+from data_split import split_data_flickr
 ##################################### parameter settings ##############################################
 
 parser = argparse.ArgumentParser(description='Create and run an articulatory feature classification DNN')
@@ -36,8 +36,8 @@ parser.add_argument('-data_loc', type = str, default = '/prep_data/flickr_featur
                     help = 'location of the feature file, default: /prep_data/flickr_features.h5')
 parser.add_argument('-split_loc', type = str, default = '/data/flickr/dataset.json', 
                     help = 'location of the json file containing the data split information')
-parser.add_argument('-results_loc', type = str, default = '/data/caption2image/PyTorch/flickr_char/ensemble/',
-                    help = 'location of the json file containing the data split information')
+parser.add_argument('-results_loc', type = str, default = './ensemble_results/',
+                    help = 'location of the pretrained networks')
 # args concerning training settings
 parser.add_argument('-batch_size', type = int, default = 100, help = 'batch size, default: 100')
 parser.add_argument('-cuda', type = bool, default = True, help = 'use cuda, default: True')
@@ -45,7 +45,6 @@ parser.add_argument('-cuda', type = bool, default = True, help = 'use cuda, defa
 parser.add_argument('-data_base', type = str, default = 'flickr', help = 'database to train on, default: flickr')
 parser.add_argument('-visual', type = str, default = 'resnet', help = 'name of the node containing the visual features, default: resnet')
 parser.add_argument('-cap', type = str, default = 'raw_text', help = 'name of the node containing the audio features, default: raw_text')
-parser.add_argument('-gradient_clipping', type = bool, default = True, help ='use gradient clipping, default: True')
 
 args = parser.parse_args()
 
@@ -68,28 +67,15 @@ if cuda:
 else:
     print('using cpu')
 
-# get a list of all the nodes in the file. h5 format takes at most 10000 leaves per node, so big
-# datasets are split into subgroups at the root node 
-def iterate_large_dataset(h5_file):
-    for x in h5_file.root:
-        for y in x:
-            yield y
-# flickr doesnt need to be split at the root node
-def iterate_flickr(h5_file):
+def iterate_data(h5_file):
     for x in h5_file.root:
         yield x
+# load the data from the h5 file
+f_nodes = [node for node in iterate_data(data_file)]
 
-if args.data_base == 'coco':
-    f_nodes = [node for node in iterate_large_dataset(data_file)]  
-elif args.data_base == 'flickr':
-    f_nodes = [node for node in iterate_flickr(data_file)]
-else:
-    print('incorrect database option')
-    exit()   
-    
 # split the database into train test and validation sets. default settings uses the json file
 # with the karpathy split
-train, test, val = split_data(f_nodes, args.split_loc)
+train, test, val = split_data_flickr(f_nodes, args.split_loc)
 #####################################################
 # network modules
 img_net = img_encoder(image_config)
@@ -101,6 +87,7 @@ trainer.set_raw_text_batcher()
 # optionally use cuda
 if cuda:
     trainer.set_cuda()
+# set the evaluator to use r@1 5 and 10
 trainer.set_evaluator([1, 5, 10])
 
 # list all the trained model parameters
@@ -111,14 +98,16 @@ img_models = [x for x in models if 'image' in x]
 # run the image and caption retrieval and create an ensemble
 img_models.sort()
 caption_models.sort()
-caps = torch.autograd.Variable(trainer.dtype(np.zeros((5000, out_size)))).data
-imgs = torch.autograd.Variable(trainer.dtype(np.zeros((5000, out_size)))).data
+caps = trainer.dtype(np.zeros((5000, out_size)))
+imgs = trainer.dtype(np.zeros((5000, out_size)))
 
 for img, cap in zip(img_models, caption_models):  
     epoch = img.split('.')[1]
     # load the pretrained embedders
     trainer.load_cap_embedder(args.results_loc + cap)
-    trainer.load_img_embedder(args.results_loc + img)   
+    trainer.load_img_embedder(args.results_loc + img)
+    # set requires grad to false for the networks
+    trainer.no_grads()
     # calculate the recall@n
     trainer.set_epoch(epoch)
     trainer.recall_at_n(val, args.batch_size, prepend = 'val')

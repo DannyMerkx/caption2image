@@ -2,12 +2,14 @@
 # -*- coding: utf-8 -*-
 """
 Created on Mon Mar 26 17:54:07 2018
-
+Script with all the different encoder models.
 @author: danny
 """
 
-from costum_layers import RHN, attention, multi_attention
+from costum_layers import RHN, multi_attention, transformer_encoder, transformer_decoder
 from load_embeddings import load_word_embeddings
+from transformer import transformer
+
 import torch
 import torch.nn as nn
 
@@ -35,14 +37,14 @@ class text_rnn_encoder(nn.Module):
         x, hx = self.RNN(x)
         # unpack again as at the moment only rnn layers except packed_sequence objects
         x, lens = nn.utils.rnn.pad_packed_sequence(x, batch_first = True)
-        x = nn.functional.normalize(self.att(x), p=2, dim=1)
+        x = nn.functional.normalize(self.att(x), p=2, dim=1)    
         return x
     
     def load_embeddings(self, dict_loc, embedding_loc):
         # optionally load pretrained word embeddings. takes the dictionary of words occuring in the training data
         # and the location of the embeddings.
         load_word_embeddings(dict_loc, embedding_loc, self.embed.weight.data)         
-
+    
 # the network for embedding the visual features
 class img_encoder(nn.Module):
     def __init__(self, config):
@@ -57,6 +59,63 @@ class img_encoder(nn.Module):
             return nn.functional.normalize(x, p=2, dim=1)
         else:
             return x
+###################################transformer architectures#########################################
+
+# transformer model which takes aligned input in two languages and learns
+# to translate from language to the other. 
+class translator_transformer(transformer):
+    def __init__(self, config):
+        super(translator_transformer, self).__init__()
+        embed = config['embed']
+        tf = config['tf']
+        self.is_cuda = config['cuda']
+        self.max_len = tf['max_len']
+        # create the embedding layer
+        self.embed = nn.Embedding(num_embeddings = embed['num_chars'], 
+                                  embedding_dim = embed['embedding_dim'], sparse = embed['sparse'],
+                                  padding_idx = embed['padding_idx'])
+        # create the positional embeddings
+        self.pos_emb = self.pos_embedding(tf['max_len'], embed['embedding_dim'])
+        # create the (stacked) transformer
+        self.TF_enc = transformer_encoder(in_size = tf['input_size'], fc_size = tf['fc_size'], 
+                              n_layers = tf['n_layers'], h = tf['h'])
+        self.TF_dec = transformer_decoder(in_size = tf['input_size'], fc_size = tf['fc_size'], 
+                              n_layers = tf['n_layers'], h = tf['h'])
+        self.linear = nn.Linear(embed['embedding_dim'], embed['num_chars'])
+    # forward, during training give the transformer both languages
+    def forward(self, enc_input, dec_input):
+        out, targs = self.encoder_decoder_train(enc_input, dec_input)
+        return out, targs
+    # translate, during test time translate from one language to the other, works without decoder input
+    # from the target language. 
+    def translate(self, enc_input, dec_input = None, dtype = torch.cuda.FloatTensor, beam_width = 1):
+        candidates, preds, targs = self.encoder_decoder_test(enc_input, dec_input, dtype, self.max_len, beam_width)
+        return candidates, preds, targs
+
+# transformer model for image-caption retrieval
+class text_transformer(transformer):
+    def __init__(self, config):
+        super(text_transformer, self).__init__()
+        embed = config['embed']
+        tf= config['tf']
+        self.is_cuda = config['cuda']
+        # create the embedding layer
+        self.embed = nn.Embedding(num_embeddings = embed['num_chars'], 
+                                  embedding_dim = embed['embedding_dim'], sparse = embed['sparse'],
+                                  padding_idx = embed['padding_idx'])
+        # create the positional embeddings
+        self.pos_emb = self.pos_embedding(tf['max_len'],embed['embedding_dim'])
+        # create the (stacked) transformer
+        self.TF_enc = transformer_encoder(in_size = tf['input_size'], fc_size = tf['fc_size'], 
+                              n_layers = tf['n_layers'], h = tf['h'])
+        self.linear = nn.Linear(tf['input_size'], 1024)
+    def forward(self, input, l):
+        # encode the sentence using the transformer
+        encoded, targs = self.encoder_only(input)
+        # sum over the time axis and normalise the l2 norm of the embedding
+        x = nn.functional.normalize(encoded.max(1)[0], p = 2, dim = 1)
+        return x
+
 
 ######################################################################################################
 # network concepts and experiments and networks by others

@@ -23,7 +23,7 @@ import torch
 import sys
 import numpy as np
 
-sys.path.append('/data/caption2image/PyTorch/functions')
+sys.path.append('../functions')
 
 from trainer import flickr_trainer
 from encoders import img_encoder, text_rnn_encoder
@@ -34,8 +34,10 @@ parser = argparse.ArgumentParser(description='Create and run an articulatory fea
 
 # args concerning file location
 parser.add_argument('-data_loc', type = str, default = '/prep_data/coco_features.h5',
-                    help = 'location of the feature file, default: /prep_data/flickr_features.h5')
-parser.add_argument('-results_loc', type = str, default = '/data/caption2image/PyTorch/coco_char/ensemble_results/',
+                    help = 'location of the feature file, default: /prep_data/coco_features.h5')
+parser.add_argument('-split_loc', type = str, default = '/data/mscoco/', 
+                    help = 'location of the json file containing the data split information')
+parser.add_argument('-results_loc', type = str, default = './ensemble_results/',
                     help = 'location of the json file containing the data split information')
 # args concerning training settings
 parser.add_argument('-batch_size', type = int, default = 100, help = 'batch size, default: 100')
@@ -70,39 +72,31 @@ else:
     print('using cpu')
     dtype = torch.FloatTensor
 
-# get a list of all the nodes in the file. h5 format takes at most 10000 leaves per node, so big
-# datasets are split into subgroups at the root node 
-def iterate_large_dataset(h5_file):
+def iterate_data(h5_file):
     for x in h5_file.root:
         for y in x:
             yield y
-# flickr doesnt need to be split at the root node
-def iterate_flickr(h5_file):
-    for x in h5_file.root:
-        yield x
-
-if args.data_base == 'coco':
-    f_nodes = [node for node in iterate_large_dataset(data_file)]  
-elif args.data_base == 'flickr':
-    f_nodes = [node for node in iterate_flickr(data_file)]
-elif args.data_base == 'places':
-    print('places has no written captions')
-else:
-    print('incorrect database option')
-    exit()   
+# load the data from the h5 file
+f_nodes = [node for node in iterate_data(data_file)]
     
 # split the database into train test and validation sets. default settings uses the json file
 # with the karpathy split
-train, val = split_data_coco(f_nodes)
+train, val = split_data_coco(f_nodes, args.split_loc)
 test = train[-5000:]
 # nr of caption in the test set
 test_size = len(test) * 5
-
 #####################################################
-
 # network modules
 img_net = img_encoder(image_config)
 cap_net = text_rnn_encoder(char_config)
+
+# create a trainer with just the evaluator for the purpose of testing a pretrained model
+trainer = flickr_trainer(img_net, cap_net, args.visual, args.cap)
+trainer.set_raw_text_batcher()
+#optionally use cuda
+if cuda:
+    trainer.set_cuda()
+trainer.set_evaluator([1, 5, 10])
 
 # list all the trained model parameters
 models = os.listdir(args.results_loc)
@@ -115,23 +109,19 @@ caption_models.sort()
 caps = torch.autograd.Variable(dtype(np.zeros((test_size, out_size)))).data
 imgs = torch.autograd.Variable(dtype(np.zeros((test_size, out_size)))).data
 
-# create a trainer with just the evaluator for the purpose of testing a pretrained model
-trainer = flickr_trainer(img_net, cap_net, args.visual, args.cap)
-trainer.set_raw_text_batcher()
-if cuda:
-    trainer.set_cuda()
-trainer.set_evaluator([1, 5, 10])
-
 for img, cap in zip(img_models, caption_models) :
     epoch = img.split('.')[1]
 
     # load the pretrained embedders
     trainer.load_cap_embedder(args.results_loc + cap)
     trainer.load_img_embedder(args.results_loc + img)
-    
+    # set requires grad to false for the networks
+    trainer.no_grads()
+    # calculate the recall@n
+    trainer.set_epoch(epoch)
     trainer.recall_at_n(val, args.batch_size, prepend = 'val')
     trainer.fivefold_recall_at_n('validation')
-    caption =  trainer.evaluator.return_caption_embeddings()
+    caption = trainer.evaluator.return_caption_embeddings()
     image = trainer.evaluator.return_image_embeddings()
 
     caps += caption

@@ -15,14 +15,15 @@ import numpy as np
 import logging
 import torch
 import string
-sys.path.append('/data/caption2image/PyTorch/functions')
+import os
+sys.path.append('../PyTorch/functions')
 from encoders import text_rnn_encoder
 
 # Set PATHs
 PATH_TO_SENTEVAL = '/data/SentEval'
 PATH_TO_DATA = '/data/SentEval/data'
 # path to the pretrained encoder models
-PATH_TO_ENC = '/data/caption2image/PyTorch/flickr_char/results/'
+PATH_TO_ENC = '../PyTorch/flickr_char/results/'
 
 # import SentEval
 sys.path.insert(0, PATH_TO_SENTEVAL)
@@ -31,7 +32,10 @@ import senteval
 def find_index(char):
     # define the set of valid characters.
     valid_chars = string.printable
-    return valid_chars.find(char)
+    idx = valid_chars.find(char)
+    if idx != -1:
+        idx += 1
+    return idx
 
 # convert characters to indices
 def char_2_index(raw_text, batch_size):
@@ -73,7 +77,7 @@ def batcher(params, batch):
     return embeddings
 
 # create config dictionaries with all the parameters for your encoders
-text_config = {'embed':{'num_chars': 100, 'embedding_dim': 20, 'sparse': False, 'padding_idx': 0}, 
+text_config = {'embed':{'num_chars': 101, 'embedding_dim': 20, 'sparse': False, 'padding_idx': 0}, 
                'rnn':{'input_size': 20, 'hidden_size': 1024, 'num_layers': 1, 'batch_first': True,
                'bidirectional': True, 'dropout': 0}, 'att':{'in_size': 2048, 'hidden_size': 128, 'heads': 1}}
 # create encoder

@@ -15,7 +15,7 @@ import tables
 import argparse
 import torch
 import sys
-sys.path.append('/data/caption2image/PyTorch/functions')
+sys.path.append('../functions')
 
 from trainer import flickr_trainer
 from encoders import img_encoder, text_rnn_encoder
@@ -27,7 +27,9 @@ parser = argparse.ArgumentParser(description='Create and run an articulatory fea
 # args concerning file location
 parser.add_argument('-data_loc', type = str, default = '/prep_data/coco_features.h5',
                     help = 'location of the feature file, default: /prep_data/coco_features.h5')
-parser.add_argument('-results_loc', type = str, default = '/data/caption2image/PyTorch/coco_char/results/',
+parser.add_argument('-split_loc', type = str, default = '/data/mscoco', 
+                    help = 'location of the json file containing the data split information')
+parser.add_argument('-results_loc', type = str, default = './results/',
                     help = 'location of the encoder parameters')
 # args concerning training settings
 parser.add_argument('-batch_size', type = int, default = 100, help = 'batch size, default: 100')
@@ -63,24 +65,11 @@ else:
 
 # get a list of all the nodes in the file. h5 format takes at most 10000 leaves per node, so big
 # datasets are split into subgroups at the root node 
-def iterate_large_dataset(h5_file):
+def iterate_data(h5_file):
     for x in h5_file.root:
         for y in x:
             yield y
-# flickr doesnt need to be split at the root node
-def iterate_flickr(h5_file):
-    for x in h5_file.root:
-        yield x
-
-if args.data_base == 'coco':
-    f_nodes = [node for node in iterate_large_dataset(data_file)]  
-elif args.data_base == 'flickr':
-    f_nodes = [node for node in iterate_flickr(data_file)]
-elif args.data_base == 'places':
-    print('places has no written captions')
-else:
-    print('incorrect database option')
-    exit()   
+f_nodes = [node for node in iterate_data(data_file)]   
     
 # split the database into train test and validation sets. default settings uses the json file
 # with the karpathy split
@@ -112,7 +101,7 @@ for img, cap in zip(img_models, caption_models) :
     # load the pretrained embedders
     trainer.load_cap_embedder(args.results_loc + cap)
     trainer.load_img_embedder(args.results_loc + img)
-    
+    trainer.no_grads()
     # calculate the recall@n
     trainer.set_epoch(epoch)
     trainer.recall_at_n(val, args.batch_size, prepend = 'validation')

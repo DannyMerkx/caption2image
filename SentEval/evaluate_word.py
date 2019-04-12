@@ -14,7 +14,8 @@ import numpy as np
 import logging
 import torch
 import pickle
-sys.path.append('/data/caption2image/PyTorch/functions')
+import os
+sys.path.append('../PyTorch/functions')
 from encoders import text_rnn_encoder
 from collections import defaultdict
 
@@ -22,27 +23,27 @@ from collections import defaultdict
 PATH_TO_SENTEVAL = '/data/SentEval'
 PATH_TO_DATA = '/data/SentEval/data'
 glove_loc = '/data/glove.840B.300d.txt'
-PATH_TO_ENC = '/data/caption2image/PyTorch/flickr_words/results/'
+PATH_TO_ENC = '../flickr_words/results/'
 
 # import SentEval
 sys.path.insert(0, PATH_TO_SENTEVAL)
 import senteval
-dict_loc = '/data/speech2image/PyTorch/flickr_words/flickr_dict'
+dict_loc = '../PyTorch/flickr_words/flickr_dict'
 
 # create a dictionary of all the words in the senteval tasks
-all_dictionary = defaultdict(int)
+senteval_dict = defaultdict(int)
 
 def load_obj(loc):
     with open(loc + '.pkl', 'rb') as f:
         return pickle.load(f)
 
 def word_2_index(word_list, batch_size, dict_loc):
-    global all_dictionary
+    global senteval_dict
     # add words to the Senteval dictionary
     for i, words in enumerate(word_list):
         for j, word in enumerate(words):
-            if all_dictionary[word] == 0:
-                all_dictionary[word] = len(all_dictionary)
+            if senteval_dict[word] == 0:
+                senteval_dict[word] = len(senteval_dict)
     w_dict = load_obj(dict_loc)
     # filter words that do not occur in the dictionary
     word_list = [[word if word in w_dict else '<oov>' for word in sent] for sent in word_list]
@@ -60,7 +61,6 @@ def prepare(params, samples):
     return
 
 def batcher(params, batch):
-    global the_one_dictionary
     # replace empty captions with the out of vocab token
     batch = [sent if sent != [] else ['<oov>'] for sent in batch]
     # add beginning and end of sentence tokens     
@@ -79,13 +79,13 @@ def batcher(params, batch):
     embeddings = embeddings[np.argsort(sort)]
     return embeddings
 
-dict_len = len(load_obj(dict_loc))
+dict_len = len(load_obj(dict_loc)) + 3
 # create config dictionaries with all the parameters for your encoders
 text_config = {'embed':{'num_chars': dict_len, 'embedding_dim': 300, 'sparse': False, 'padding_idx': 0}, 
                'rnn':{'input_size': 300, 'hidden_size': 2048, 'num_layers': 1, 'batch_first': True,
                'bidirectional': True, 'dropout': 0}, 'att':{'in_size': 4096, 'hidden_size': 128, 'heads': 1}}
 # create encoder
-encoder = text_gru_encoder(text_config)
+encoder = text_rnn_encoder(text_config)
 for p in encoder.parameters():
     p.requires_grad = False
 encoder.cuda()
@@ -128,5 +128,5 @@ if __name__ == "__main__":
                       ]
     results = se.eval(transfer_tasks)
     print(results)
-    save_obj(the_one_dictionary, 'the_one_dictionary')
+    save_obj(senteval_dict, 'senteval_dict')
 

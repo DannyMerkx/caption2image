@@ -16,7 +16,7 @@ import argparse
 import torch
 import pickle
 import sys
-sys.path.append('/data/caption2image/PyTorch/functions')
+sys.path.append('../functions')
 
 from trainer import flickr_trainer
 from encoders import img_encoder, text_rnn_encoder
@@ -28,9 +28,11 @@ parser = argparse.ArgumentParser(description='Create and run an articulatory fea
 # args concerning file location
 parser.add_argument('-data_loc', type = str, default = '/prep_data/coco_features.h5',
                     help = 'location of the feature file, default: /prep_data/coco_features.h5')
-parser.add_argument('-results_loc', type = str, default = '/data/caption2image/PyTorch/coco_words/results/',
+parser.add_argument('-split_loc', type = str, default = '/data/mscoco', 
+                    help = 'location of the json file containing the data split information')
+parser.add_argument('-results_loc', type = str, default = './results/',
                     help = 'location of the encoder parameters')
-parser.add_argument('-dict_loc', type = str, default = '/data/caption2image/prep_data/dictionaries/coco_dict')
+parser.add_argument('-dict_loc', type = str, default = './coco_dict')
 # args concerning training settings
 parser.add_argument('-batch_size', type = int, default = 100, help = 'batch size, default: 32')
 parser.add_argument('-cuda', type = bool, default = True, help = 'use cuda, default: True')
@@ -45,8 +47,8 @@ def load_obj(loc):
     with open(loc + '.pkl', 'rb') as f:
         return pickle.load(f)
 # get the size of the dictionary for the embedding layer (pytorch crashes if the embedding layer is not correct for the dictionary size)
-# add 1 for the zero or padding embedding
-dict_size = len(load_obj(args.dict_loc)) + 1
+# add 3 for the padding and begining/end of sentence tokens
+dict_size = len(load_obj(args.dict_loc)) + 3
 
 # create config dictionaries with all the parameters for your encoders
 token_config = {'embed':{'num_chars': dict_size, 'embedding_dim': 300, 'sparse': False, 'padding_idx': 0},
@@ -68,24 +70,11 @@ else:
 
 # get a list of all the nodes in the file. h5 format takes at most 10000 leaves per node, so big
 # datasets are split into subgroups at the root node 
-def iterate_large_dataset(h5_file):
+def iterate_data(h5_file):
     for x in h5_file.root:
         for y in x:
             yield y
-# flickr doesnt need to be split at the root node
-def iterate_flickr(h5_file):
-    for x in h5_file.root:
-        yield x
-
-if args.data_base == 'coco':
-    f_nodes = [node for node in iterate_large_dataset(data_file)]   
-elif args.data_base == 'flickr':
-    f_nodes = [node for node in iterate_flickr(data_file)]
-elif args.data_base == 'places':
-    print('places has no written captions')
-else:
-    print('incorrect database option')
-    exit() 
+f_nodes = [node for node in iterate_data(data_file)]   
     
 # split the database into train test and validation sets. default settings uses the json file
 # with the karpathy split
@@ -106,7 +95,7 @@ caption_models.sort()
 
 # create a trainer with just the evaluator for the purpose of testing a pretrained model
 trainer = flickr_trainer(img_net, cap_net, args.visual, args.cap)
-trainer.set_raw_text_batcher()
+trainer.set_token_batcher()
 # optionally use cuda
 if cuda:
     trainer.set_cuda()
@@ -118,7 +107,7 @@ for img, cap in zip(img_models, caption_models) :
     # load the pretrained embedders
     trainer.load_cap_embedder(args.results_loc + cap)
     trainer.load_img_embedder(args.results_loc + img)
-    
+    trainer.no_grads()
     # calculate the recall@n
     trainer.set_epoch(epoch)
     trainer.recall_at_n(val, args.batch_size, prepend = 'validation')

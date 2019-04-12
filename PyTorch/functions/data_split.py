@@ -2,16 +2,18 @@
 # -*- coding: utf-8 -*-
 """
 Created on Tue Apr 10 10:57:38 2018
-
+this script loads the pre-defined datasplits for certain datasets
 @author: danny
 """
+
+
 # script that loads the flickr database json file in order to split
-# the data into Karpathy's  train test and validation set.
+# the flickr data into Karpathy's train test and validation set.
 from nltk.tokenize.nist import NISTTokenizer
 import json
 import os
 
-def split_data(f_nodes, loc):
+def split_data_flickr(f_nodes, loc):
     file = json.load(open(loc))
     split_dict = {}
     for x in file['images']:
@@ -31,10 +33,10 @@ def split_data(f_nodes, loc):
             test.append(x) 
     return train, val, test
 
-def split_data_coco(f_nodes):
-
-    train_img_path = os.path.join('/data/mscoco/train2017')
-    val_img_path = os.path.join('/data/mscoco/val2017')
+# Karpathy's MSCOCO split
+def split_data_coco(f_nodes, loc):
+    train_img_path = os.path.join(loc, 'train2017')
+    val_img_path = os.path.join(loc, 'val2017')
 
     train_imgs = os.listdir(train_img_path)
     val_imgs = os.listdir(val_img_path)

@@ -8,6 +8,7 @@ load pretrained word embeddings (GloVe) and use them to initialise an embedding 
 import pickle
 import torch
 from collections import defaultdict
+
 # load dictionary
 def load_obj(loc):
     with open(loc + '.pkl', 'rb') as f:

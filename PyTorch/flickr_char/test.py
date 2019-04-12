@@ -15,11 +15,11 @@ import tables
 import argparse
 import torch
 import sys
-sys.path.append('/data/caption2image/PyTorch/functions')
+sys.path.append('../functions')
 
 from trainer import flickr_trainer
 from encoders import img_encoder, text_rnn_encoder
-from data_split import split_data
+from data_split import split_data_flickr
 ##################################### parameter settings ##############################################
 
 parser = argparse.ArgumentParser(description='Create and run an articulatory feature classification DNN')
@@ -29,7 +29,7 @@ parser.add_argument('-data_loc', type = str, default = '/prep_data/flickr_featur
                     help = 'location of the feature file, default: /prep_data/flickr_features.h5')
 parser.add_argument('-split_loc', type = str, default = '/data/flickr/dataset.json', 
                     help = 'location of the json file containing the data split information')
-parser.add_argument('-results_loc', type = str, default = '/data/caption2image/PyTorch/flickr_char/results/',
+parser.add_argument('-results_loc', type = str, default = './results/',
                     help = 'location of the saved network parameters')
 # args concerning training settings
 parser.add_argument('-batch_size', type = int, default = 100, help = 'batch size, default: 100')
@@ -81,7 +81,7 @@ else:
     
 # split the database into train test and validation sets. default settings uses the json file
 # with the karpathy split
-train, test, val = split_data(f_nodes, args.split_loc)
+train, test, val = split_data_flickr(f_nodes, args.split_loc)
 #####################################################
 # network modules
 img_net = img_encoder(image_config)
@@ -110,7 +110,7 @@ for img, cap in zip(img_models, caption_models):
     # load the pretrained embedders
     trainer.load_cap_embedder(args.results_loc + cap)
     trainer.load_img_embedder(args.results_loc + img)
-    
+    trainer.no_grads()
     # calculate the recall@n
     trainer.set_epoch(epoch)
     trainer.recall_at_n(val, args.batch_size, prepend = 'val')

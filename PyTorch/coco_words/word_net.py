@@ -15,7 +15,7 @@ import torch
 import numpy as np
 from torch.optim import lr_scheduler
 import sys
-sys.path.append('/data/caption2image/PyTorch/functions')
+sys.path.append('../functions')
 
 from trainer import flickr_trainer
 from costum_loss import batch_hinge_loss, ordered_loss, attention_loss
@@ -28,9 +28,11 @@ parser = argparse.ArgumentParser(description='Create and run an articulatory fea
 # args concerning file location
 parser.add_argument('-data_loc', type = str, default = '/prep_data/coco_features.h5',
                     help = 'location of the feature file, default: /prep_data/coco_features.h5')
-parser.add_argument('-results_loc', type = str, default = '/data/caption2image/PyTorch/coco_words/results/',
+parser.add_argument('-split_loc', type = str, default = '/data/mscoco/', 
+                    help = 'location of the json file containing the data split information')
+parser.add_argument('-results_loc', type = str, default = './results/',
                     help = 'location to save the results and network parameters')
-parser.add_argument('-dict_loc', type = str, default = '/data/caption2image/preprocessing/dictionaries/coco_indices')
+parser.add_argument('-dict_loc', type = str, default = './coco_indices')
 parser.add_argument('-glove_loc', type = str, default = '/data/glove.840B.300d.txt', help = 'location of pretrained glove embeddings')
 # args concerning training settings
 parser.add_argument('-batch_size', type = int, default = 32, help = 'batch size, default: 32')
@@ -50,7 +52,7 @@ def load_obj(loc):
     with open(loc + '.pkl', 'rb') as f:
         return pickle.load(f)
 # get the size of the dictionary for the embedding layer (pytorch crashes if the embedding layer is not correct for the dictionary size)
-# add 1 for the zero or padding embedding
+# add 3 for the padding and end/beginning of sentence tokens
 dict_size = len(load_obj(args.dict_loc))
 
 # create config dictionaries with all the parameters for your encoders
@@ -73,26 +75,15 @@ else:
 
 # get a list of all the nodes in the file. h5 format takes at most 10000 leaves per node, so big
 # datasets are split into subgroups at the root node 
-def iterate_large_dataset(h5_file):
+def iterate_data(h5_file):
     for x in h5_file.root:
         for y in x:
             yield y
-# flickr doesnt need to be split at the root node
-def iterate_flickr(h5_file):
-    for x in h5_file.root:
-        yield x
-
-if args.data_base == 'coco':
-    f_nodes = [node for node in iterate_large_dataset(data_file)]   
-elif args.data_base == 'flickr':
-    f_nodes = [node for node in iterate_flickr(data_file)]
-else:
-    print('incorrect database option')
-    exit()  
+f_nodes = [node for node in iterate_data(data_file)]   
 
 # split the database into train test and validation sets. default settings uses the json file
 # with the karpathy split
-train, val = split_data_coco(f_nodes)
+train, val = split_data_coco(f_nodes, args.split_loc)
 # set aside 5000 images as test set
 test = train[-5000:]
 train = train[:-5000]
@@ -100,7 +91,6 @@ train = train[:-5000]
 # network modules
 img_net = img_encoder(image_config)
 cap_net = text_rnn_encoder(token_config)
-    
 # Adam optimiser. I found SGD to work terribly and could not find appropriate parameter settings for it.
 optimizer = torch.optim.Adam(list(img_net.parameters())+list(cap_net.parameters()), 1)
 
@@ -152,7 +142,7 @@ if args.gradient_clipping:
 while trainer.epoch <= args.n_epochs:
     # Train on the train set
     trainer.train_epoch(train, args.batch_size)
-    #evaluate on the validation set
+    # evaluate on the validation set
     trainer.test_epoch(val, args.batch_size)
     # save network parameters
     trainer.save_params(args.results_loc)  
