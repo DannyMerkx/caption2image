@@ -9,3 +9,4 @@ Please cite the original creators of any pretrained network you use.
 
 The speech2image neural networks were originally introduced by D. Harwath and J. Glass  (2016) in the paper called: Unsupervised Learning of Spoken Language with Visual Context. The basic neural network structure (the one in speech2im_net.py) and the use of the l2norm hinge loss function is a PyTorch based reproduction of the ideas and work described in that paper.
 
+The NLE2019 branch is the version of the code used in "Learning semantic sentence representations from visually grounded language without lexical knowledge"
