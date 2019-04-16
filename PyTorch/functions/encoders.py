@@ -108,7 +108,6 @@ class text_transformer(transformer):
         # create the (stacked) transformer
         self.TF_enc = transformer_encoder(in_size = tf['input_size'], fc_size = tf['fc_size'], 
                               n_layers = tf['n_layers'], h = tf['h'])
-        self.linear = nn.Linear(tf['input_size'], 1024)
     def forward(self, input, l):
         # encode the sentence using the transformer
         encoded, targs = self.encoder_train(input)
