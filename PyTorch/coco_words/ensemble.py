@@ -44,7 +44,6 @@ parser.add_argument('-dict_loc', type = str, default = './word_dict')
 parser.add_argument('-batch_size', type = int, default = 100, help = 'batch size, default: 100')
 parser.add_argument('-cuda', type = bool, default = True, help = 'use cuda, default: True')
 # args concerning the database and which features to load
-parser.add_argument('-data_base', type = str, default = 'coco', help = 'database to train on, default: flickr')
 parser.add_argument('-visual', type = str, default = 'resnet', help = 'name of the node containing the visual features, default: resnet')
 parser.add_argument('-cap', type = str, default = 'tokens', help = 'name of the node containing the caption features, default: tokens')
 

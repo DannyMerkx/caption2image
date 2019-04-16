@@ -343,7 +343,7 @@ class transformer(nn.Module):
         # apply the (stacked) encoder transformer
         encoded = self.TF_enc(e_emb + self.pos_emb[:enc_input.size(1), :], mask = e_mask)
         
-        return decoded, targs 
+        return encoded, targs 
    
     # function to generate translations from an encoded sentence. if translations are availlable
     # they can be used as targets for evaluating but also works for unknown sentences. 

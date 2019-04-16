@@ -37,7 +37,6 @@ parser.add_argument('-lr', type = float, default = 0.0001, help = 'learning rate
 parser.add_argument('-n_epochs', type = int, default = 32, help = 'number of training epochs, default: 32')
 parser.add_argument('-cuda', type = bool, default = True, help = 'use cuda, default: True')
 # args concerning the database and which features to load
-parser.add_argument('-data_base', type = str, default = 'coco', help = 'database to train on, default: coco')
 parser.add_argument('-visual', type = str, default = 'resnet', help = 'name of the node containing the visual features, default: resnet')
 parser.add_argument('-cap', type = str, default = 'raw_text', help = 'name of the node containing the caption features, default: raw:text')
 parser.add_argument('-gradient_clipping', type = bool, default = False, help ='use gradient clipping, default: False')
