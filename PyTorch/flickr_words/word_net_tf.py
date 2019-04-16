@@ -70,26 +70,11 @@ image_config = {'linear':{'in_size': 2048, 'out_size': 1024}, 'norm': True}
 # open the data file
 data_file = tables.open_file(args.data_loc, mode='r+') 
 
-# get a list of all the nodes in the file. h5 format takes at most 10000 leaves per node, so big
-# datasets are split into subgroups at the root node 
-def iterate_large_dataset(h5_file):
-    for x in h5_file.root:
-        for y in x:
-            yield y
-# flickr doesnt need to be split at the root node
-def iterate_flickr(h5_file):
+# get a list of all the nodes in the file.
+def iterate_data(h5_file):
     for x in h5_file.root:
         yield x
-
-if args.data_base == 'coco':
-    f_nodes = [node for node in iterate_large_dataset(data_file)]  
-elif args.data_base == 'flickr':
-    f_nodes = [node for node in iterate_flickr(data_file)]
-elif args.data_base == 'places':
-    print('places has no written captions')
-else:
-    print('incorrect database option')
-    exit()  
+f_nodes = [node for node in iterate_data(data_file)]
 
 # split the database into train test and validation sets. default settings uses the json file
 # with the karpathy split

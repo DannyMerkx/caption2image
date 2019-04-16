@@ -66,8 +66,7 @@ else:
 # datasets are split into subgroups at the root node 
 def iterate_data(h5_file):
     for x in h5_file.root:
-        for y in x:
-            yield y
+            yield x
 f_nodes = [node for node in iterate_data(data_file)]   
 
 # split the database into train test and validation sets. default settings uses the json file

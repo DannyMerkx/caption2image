@@ -63,8 +63,7 @@ else:
     print('using cpu')
     dtype = torch.FloatTensor
 
-# get a list of all the nodes in the file. h5 format takes at most 10000 leaves per node, so big
-# datasets are split into subgroups at the root node 
+# get a list of all the nodes in the file.
 def iterate_data(h5_file):
     for x in h5_file.root:
         for y in x:
