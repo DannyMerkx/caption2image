@@ -6,7 +6,7 @@ Script with all the different encoder models.
 @author: danny
 """
 
-from costum_layers import RHN, multi_attention, transformer_encoder, transformer_decoder, transformer_super
+from costum_layers import RHN, multi_attention, transformer_encoder, transformer_decoder, transformer
 from load_embeddings import load_word_embeddings
 
 import torch
@@ -111,7 +111,7 @@ class text_transformer(transformer):
         self.linear = nn.Linear(tf['input_size'], 1024)
     def forward(self, input, l):
         # encode the sentence using the transformer
-        encoded, targs = self.encoder_only(input)
+        encoded, targs = self.encoder_train(input)
         # sum over the time axis and normalise the l2 norm of the embedding
         x = nn.functional.normalize(encoded.max(1)[0], p = 2, dim = 1)
         return x
