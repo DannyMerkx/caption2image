@@ -6,12 +6,12 @@ Script with all the different encoder models.
 @author: danny
 """
 
-from costum_layers import RHN, multi_attention, transformer_encoder, transformer_decoder
+from costum_layers import RHN, multi_attention, transformer_encoder, transformer_decoder, transformer_super
 from load_embeddings import load_word_embeddings
-from transformer import transformer
 
 import torch
 import torch.nn as nn
+######################################image_caption_retrieval######################################
 
 # rnn encoder for characters and tokens
 class text_rnn_encoder(nn.Module):
@@ -115,7 +115,6 @@ class text_transformer(transformer):
         # sum over the time axis and normalise the l2 norm of the embedding
         x = nn.functional.normalize(encoded.max(1)[0], p = 2, dim = 1)
         return x
-
 
 ######################################################################################################
 # network concepts and experiments and networks by others
